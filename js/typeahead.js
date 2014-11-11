@@ -1,12 +1,10 @@
-(function(){
-    var TA = document.getElementById("typeahead-input");
-    TA.oninput = search;
+var typeahead = {
+    TA: null,
+    parentDiv: null,
+    suggestionsDiv: null,
+    matches: {},
 
-    var parentDiv = TA.parentNode;
-
-    var suggestionsDiv = parentDiv.getElementsByClassName("typeahead-suggestions")[0];
-
-    var searchObject = {
+    searchObject: {
         "Aphonopelma":["poop","dick","butt"],
         "Brachypelma":["poop","dick","butt"],
         "Chromatopelma":["poop","dick","butt"],
@@ -19,32 +17,39 @@
         "Platyomma":["poop","dick","butt"],
         "Theriphosa":["poop","dick","butt"],
         "Xenesthis":["poop","dick","butt"]
-    }
+    },
     
-    var matches = {};
 
-    
-    function search(){
+    init: function(){
+        TA = document.getElementById("typeahead-input");
+        TA.oninput = typeahead.search;
+
+        parentDiv = TA.parentNode,
+
+        suggestionsDiv = parentDiv.getElementsByClassName("typeahead-suggestions")[0];
+    },
+
+    search: function(){
         suggestionsDiv.innerHTML = "";
 
         var searchValue = TA.value;
 
         setTimeout(function() {
-            findSuggestions(searchValue); 
+            typeahead.findSuggestions(searchValue); 
         }, 100);
-    }
+    },
 
-    function findSuggestions(searchValue){
+    findSuggestions: function(searchValue){
         var key;
 
-        for (key in searchObject) {
-            if (searchObject.hasOwnProperty(key)) {
-                matchPattern(searchValue, key);
+        for (key in typeahead.searchObject) {
+            if (typeahead.searchObject.hasOwnProperty(key)) {
+                typeahead.matchPattern(searchValue, key);
             }
         }
-    }
+    },
 
-    function matchPattern(searchValue, key){
+    matchPattern: function(searchValue, key){
         var pattern = new RegExp(searchValue, 'i');
         var highlighted = key + "";
         var result;
@@ -53,15 +58,33 @@
    
         if(result){
             highlighted = key.replace(pattern, "<strong>" + searchValue + "</strong>");
-            matches[key] = highlighted;
-            
-            suggestionsDiv.innerHTML += highlighted + "<br/>";
+            typeahead.matches[key] = highlighted;    
+
+            typeahead.addMatch(key, highlighted);
         }
         else{
-            delete matches[key]; 
+            delete typeahead.matches[key]; 
         }
 
-        console.log(matches);
+        console.log(typeahead.matches);
+    },
+
+    addMatch: function(key, highlighted){
+        var li = document.createElement("li");
+        li.setAttribute("data-key", key);
+        li.innerHTML = highlighted;
+        li.onclick = function(e){typeahead.completeInput(e)};
+        suggestionsDiv.appendChild(li);
+    },
+
+
+    completeInput: function(e){
+        var text = e.target.getAttribute("data-key");
+        console.log(text);
+        TA.value = text;
+        suggestionsDiv.innerHTML = "";
     }
 
-})();
+};
+
+new typeahead.init();
